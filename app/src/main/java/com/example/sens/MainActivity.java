@@ -26,7 +26,7 @@ public class MainActivity extends AppCompatActivity {
                     SmsResponse smsResponse = response.body();
                     String statusCode = String.valueOf(smsResponse.getStatusCode());
                     String statusName = smsResponse.getStatusName();
-                    // TODO: SMS 보내기 성공 처리
+                    // TODO: SMS 보내기 성공 처리d
                 } else {
                     // SMS 보내기 실패 처리
                     // response.errorBody()를 통해 실패 이유 확인 가능
