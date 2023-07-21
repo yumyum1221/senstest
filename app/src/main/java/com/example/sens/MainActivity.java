@@ -66,6 +66,7 @@ public class MainActivity extends AppCompatActivity {
                             // SMS 발송 성공
                             Toast.makeText(MainActivity.this, "문자가 발송되었습니다.", Toast.LENGTH_SHORT).show();
                         } else {
+                            int errorCode = response.code(); // 응답 코드 가져오기
                             // SMS 발송 실패
                             Toast.makeText(MainActivity.this, "문자 발송에 실패하였습니다.", Toast.LENGTH_SHORT).show();
                         }
