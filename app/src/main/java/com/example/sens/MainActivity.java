@@ -16,6 +16,12 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
+//앱의 메인 화면과 관련된 코드가 포함된 클래스입니다.
+//사용자로부터 전화번호와 문자 내용을 입력받고, 문자를 발송하는 기능을 구현합니다.
+//onCreate() 메서드에서 앱이 시작될 때 초기화 작업을 수행합니다.
+//sendButton의 클릭 이벤트 리스너를 등록하여 문자 발송 버튼을 눌렀을 때 동작을 처리합니다.
+//SMS 발송에 필요한 권한을 확인하고, 권한이 있을 경우 sendSms() 메서드를 호출하여 SMS를 발송합니다
+
 public class MainActivity extends AppCompatActivity {
 
     private static final int PERMISSION_REQUEST_CODE = 1;
@@ -57,8 +63,9 @@ public class MainActivity extends AppCompatActivity {
 
 
     private void sendSms(String phoneNumber, String message) {
+        String countryCode = "82";
         SmsApiClient.getInstance()
-                .sendSms("SMS", "COMM", "YOUR_PHONE_NUMBER", phoneNumber, message)
+                .sendSms("SMS", "COMM", phoneNumber, message, countryCode)
                 .enqueue(new Callback<SmsResponse>() {
                     @Override
                     public void onResponse(Call<SmsResponse> call, Response<SmsResponse> response) {
