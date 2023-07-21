@@ -11,11 +11,11 @@ public interface SmsApiService {
     @Headers({
             "Content-Type: application/x-www-form-urlencoded; charset=utf-8",
             "x-ncp-apigw-timestamp: {timestamp}",  // 현재 시간을 전달해야 함
-            "x-ncp-iam-access-key: sensApiKey",  // SENS API 액세스 키 (발급받은 API 키로 대체)
+            "x-ncp-iam-access-key: {sensApiKey}",  // SENS API 액세스 키 (발급받은 API 키로 대체)
             "x-ncp-apigw-signature-v2: {signature}"  // API 요청 시 생성한 서명 값
     })
     @FormUrlEncoded
-    @POST("https://sens.apigw.ntruss.com/sms/v2/services/{serviceId}/messages")
+    @POST("https://sens.apigw.ntruss.com/sms/v2/services/{sensApiKey}/messages")
     Call<SmsResponse> sendSms(
             @Field("type") String type,
             @Field("contentType") String contentType,

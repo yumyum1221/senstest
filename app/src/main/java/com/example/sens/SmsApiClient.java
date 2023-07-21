@@ -1,4 +1,6 @@
 package com.example.sens;
+import static com.example.sens.SmsApiService.sensApiKey;
+
 import retrofit2.Call;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
