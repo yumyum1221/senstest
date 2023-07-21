@@ -4,7 +4,7 @@ import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 public class SmsApiClient {
-    private static final String BASE_URL = "https://sens.apigw.ntruss.com/sms/v2";
+    private static final String BASE_URL = "https://sens.apigw.ntruss.com/sms/v2/";
     private static SmsApiClient instance;
     private SmsApiService smsApiService;
 
@@ -24,7 +24,7 @@ public class SmsApiClient {
         return instance;
     }
 
-    public Call<SmsResponse> sendSms(String from, String to, String content) {
-        return smsApiService.sendSms(from, to, content);
+    public Call<SmsResponse> sendSms(String from, String to, String content, String contentType, String countryCode) {
+        return smsApiService.sendSms("sms", contentType, from, to, content, countryCode);
     }
 }
