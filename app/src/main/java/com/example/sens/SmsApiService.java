@@ -13,17 +13,19 @@ public interface SmsApiService {
     String sensApiKey = BuildConfig.SENS_API_KEY;
     @Headers({
             "Content-Type: application/x-www-form-urlencoded; charset=utf-8",
-            "x-ncp-apigw-timestamp: {timestamp}",  // 현재 시간을 전달해야 함
-            "x-ncp-iam-access-key: {sensApiKey}",  // SENS API 액세스 키 (발급받은 API 키로 대체)
-            "x-ncp-apigw-signature-v2: {signature}"  // API 요청 시 생성한 서명 값
+            "x-ncp-apigw-timestamp: {timestamp}",
+            "x-ncp-iam-access-key: {sensApiKey}",
+            "x-ncp-apigw-signature-v2: {signature}"
     })
     @FormUrlEncoded
     @POST("https://sens.apigw.ntruss.com/sms/v2/services/{sensApiKey}/messages")
     Call<SmsResponse> sendSms(
-            @Field("type") String type, //sms
-            @Field("contentType") String contentType, //comm 일반메시지
+            @Field("type") String type,
+            @Field("contentType") String contentType,
+            @Field("to") String to,
             @Field("content") String content,
             @Field("countryCode") String countryCode
     );
 }
+
 

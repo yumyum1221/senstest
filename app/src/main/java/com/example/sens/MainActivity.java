@@ -33,7 +33,6 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
         phoneEditText = findViewById(R.id.phoneEditText);
         messageEditText = findViewById(R.id.messageEditText);
         sendButton = findViewById(R.id.sendButton);
@@ -63,19 +62,31 @@ public class MainActivity extends AppCompatActivity {
 
 
     private void sendSms(String phoneNumber, String message) {
-        String countryCode = "82";
+        String countryCode = "82"; // 국가 코드를 적절한 값으로 설정해주세요.
+
         SmsApiClient.getInstance()
-                .sendSms("SMS", "COMM", phoneNumber, message, countryCode)
+                .sendSms("sms", "COMM", phoneNumber, message, countryCode)
                 .enqueue(new Callback<SmsResponse>() {
                     @Override
                     public void onResponse(Call<SmsResponse> call, Response<SmsResponse> response) {
                         if (response.isSuccessful()) {
+                            SmsResponse smsResponse = response.body();
+                            int statusCode = smsResponse.getStatusCode();
+                            String statusName = smsResponse.getStatusName();
+                            String requestId = smsResponse.getRequestId();
+
+                            String resultMessage = "문자가 발송되었습니다.\n응답 코드: " + statusCode +
+                                    "\n응답 메시지: " + statusName +
+                                    "\n요청 ID: " + requestId;
                             // SMS 발송 성공
-                            Toast.makeText(MainActivity.this, "문자가 발송되었습니다.", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(MainActivity.this, "문자 발송 성공하였습니다 응답코드:"+ statusCode +
+                                    "\n응답 메시지: " + statusName +
+                                    "\n요청 ID: " + requestId, Toast.LENGTH_SHORT).show();
                         } else {
                             int errorCode = response.code(); // 응답 코드 가져오기
                             // SMS 발송 실패
-                            Toast.makeText(MainActivity.this, "문자 발송에 실패하였습니다.", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(MainActivity.this, "문자 발송에 실패하였습니다."+errorCode, Toast.LENGTH_SHORT).show();
+
                         }
                     }
 

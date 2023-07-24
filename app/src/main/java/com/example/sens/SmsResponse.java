@@ -3,8 +3,11 @@ package com.example.sens;
 import com.google.gson.annotations.SerializedName;
 
 public class SmsResponse {
+    @SerializedName("statusCode")
     private int statusCode;
+    @SerializedName("statusName")
     private String statusName;
+    @SerializedName("requestId")
     private String requestId;
 
     public SmsResponse(int statusCode, String statusName, String requestId) {
@@ -37,4 +40,3 @@ public class SmsResponse {
         this.requestId = requestId;
     }
 }
-
