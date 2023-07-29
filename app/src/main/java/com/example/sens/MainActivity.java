@@ -57,9 +57,11 @@ public class MainActivity extends AppCompatActivity {
 
     private void sendSms(String phoneNumber, String message) {
         String countryCode = "82"; // 국가 코드를 적절한 값으로 설정해주세요.
+        String access_key= BuildConfig.APPLICATION_CLIENT_ID;
+        String signature = SmsApiService.getSignature();
 
         SmsApiClient.getInstance()
-                .sendSms("sms", "COMM", phoneNumber, message, countryCode)
+                .sendSms(access_key, signature, phoneNumber, message, countryCode)
                 .enqueue(new Callback<SmsResponse>() {
                     @Override
                     public void onResponse(Call<SmsResponse> call, Response<SmsResponse> response) {
