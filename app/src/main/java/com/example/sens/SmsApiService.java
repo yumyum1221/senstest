@@ -1,5 +1,7 @@
 package com.example.sens;
 
+import android.os.Build;
+
 import java.nio.charset.StandardCharsets;
 
 import java.security.InvalidKeyException;
@@ -25,18 +27,20 @@ public interface SmsApiService {
     Call<SmsResponse> sendSms(
             @Header("x-ncp-iam-access-key") String access_key,
             @Header("x-ncp-apigw-signature-v2") String signature,
-            @Field("type") String type, //"sms"
-            @Field("contentType") String contentType, //"COMM"
-            @Field("to") String to //"phone number"
+            @Field("type") String type,
+            @Field("contentType") String contentType,
+            @Field("to") String to,
+            @Field("content") String content,
+            @Field("countryCode") String countryCode
     );
 
     public static String getSignature() {
-        String space = " ";                        // one space
-        String newLine = "\n";                     // new line
-        String method = "POST";                     // method
-        String url = "/sms/v2/services/ncp:sms:kr:305347621568:tojung/messages";  // url (include query string)
+        String space = " "; // one space
+        String newLine = "\n"; // new line
+        String method = "POST"; // method
+        String url = "/sms/v2/services/ncp:sms:kr:305347621568:tojung/messages"; // url (include query string)
         String timestamp = String.valueOf(System.currentTimeMillis()); // current timestamp (epoch)
-        String accessKey = BuildConfig.APPLICATION_CLIENT_ID;      // access key id (from portal or Sub Account)
+        String accessKey = BuildConfig.APPLICATION_CLIENT_ID; // access key id (from portal or Sub Account)
         String secretKey = BuildConfig.APPLICATION_CLIENT_SECRET;
 
         StringBuilder buffer = new StringBuilder();
@@ -50,14 +54,14 @@ public interface SmsApiService {
 
         String message = buffer.toString();
 
-        byte[] keyBytes = secretKey.getBytes(StandardCharsets.UTF_8);
-        SecretKeySpec signingKey = new SecretKeySpec(keyBytes, "HmacSHA256");
-
         try {
             Mac mac = Mac.getInstance("HmacSHA256");
+            SecretKeySpec signingKey = new SecretKeySpec(secretKey.getBytes(StandardCharsets.UTF_8), "HmacSHA256");
             mac.init(signingKey);
             byte[] digest = mac.doFinal(message.getBytes(StandardCharsets.UTF_8));
-            return Base64.getEncoder().encodeToString(digest);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                return Base64.getEncoder().encodeToString(digest);
+            }
         } catch (NoSuchAlgorithmException | InvalidKeyException e) {
             e.printStackTrace();
         }
