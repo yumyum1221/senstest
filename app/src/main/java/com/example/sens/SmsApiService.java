@@ -36,7 +36,7 @@ public interface SmsApiService {
     );
 
     public static String getSignature() {
-        String space = " "; // one space
+        String space = " "; // one space //
         String newLine = "\n"; // new line
         String method = "POST"; // method
         String url = "/sms/v2/services/ncp:sms:kr:305347621568:tojung/messages"; // url (include query string)
