@@ -1,8 +1,8 @@
 package com.example.sens;
+
 import android.Manifest;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
-import android.telephony.SmsManager;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -12,6 +12,10 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -44,6 +48,7 @@ public class MainActivity extends AppCompatActivity {
                     ActivityCompat.requestPermissions(MainActivity.this,
                             new String[]{Manifest.permission.SEND_SMS}, PERMISSION_REQUEST_CODE);
                 } else {
+                    // Retrofit을 사용하여 SENS API 호출
                     sendSms(phoneNumber, message);
                 }
             }
@@ -51,13 +56,32 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void sendSms(String phoneNumber, String message) {
-        try {
-            SmsManager smsManager = SmsManager.getDefault();
-            smsManager.sendTextMessage(phoneNumber, null, message, null, null);
-            Toast.makeText(this, "문자가 발송되었습니다.", Toast.LENGTH_SHORT).show();
-        } catch (Exception e) {
-            Toast.makeText(this, "문자 발송에 실패하였습니다.", Toast.LENGTH_SHORT).show();
-        }
+        String countryCode = "82"; // 국가 코드를 적절한 값으로 설정해주세요.
+        String accessKey = "BuildConfig.APPLICATION_CLIENT_ID";
+        String signature = SmsApiService.getSignature();
+        long timestamp = System.currentTimeMillis();
+
+        SmsApiClient.getInstance()
+                .sendSms(timestamp, accessKey, signature, "sms", "COMM", phoneNumber, message, countryCode)
+                .enqueue(new Callback<SmsResponse>() {
+                    @Override
+                    public void onResponse(Call<SmsResponse> call, Response<SmsResponse> response) {
+                        if (response.isSuccessful()) {
+                            // SMS 발송 성공
+                            Toast.makeText(MainActivity.this, "문자가 발송되었습니다.", Toast.LENGTH_SHORT).show();
+                        } else {
+                            int errorCode = response.code(); // 응답 코드 가져오기
+                            // SMS 발송 실패
+                            Toast.makeText(MainActivity.this, "문자 발송에 실패하였습니다."+errorCode, Toast.LENGTH_SHORT).show();
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<SmsResponse> call, Throwable t) {
+                        // 통신 실패
+                        Toast.makeText(MainActivity.this, "통신 오류가 발생하였습니다.", Toast.LENGTH_SHORT).show();
+                    }
+                });
     }
 
     @Override
@@ -67,6 +91,7 @@ public class MainActivity extends AppCompatActivity {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 String phoneNumber = phoneEditText.getText().toString().trim();
                 String message = messageEditText.getText().toString().trim();
+                // Retrofit을 사용하여 SENS API 호출
                 sendSms(phoneNumber, message);
             } else {
                 Toast.makeText(this, "SMS 전송 권한이 거부되었습니다.", Toast.LENGTH_SHORT).show();
