@@ -18,7 +18,7 @@ import retrofit2.http.Header;
 import retrofit2.http.POST;
 
 public interface SmsApiService {
-    String access_key = "BuildConfig.APPLICATION_CLIENT_ID";
+    String access_key = BuildConfig.APPLICATION_CLIENT_ID;
     long timestamp = System.currentTimeMillis();
     String signature = getSignature();
 
@@ -41,8 +41,8 @@ public interface SmsApiService {
         String method = "POST"; // method
         String url = "/sms/v2/services/ncp:sms:kr:305347621568:tojung/messages"; // url (include query string)
         String timestamp = String.valueOf(System.currentTimeMillis()); // current timestamp (epoch)
-        String accessKey = "BuildConfig.APPLICATION_CLIENT_ID"; // access key id (from portal or Sub Account)
-        String secretKey = "BuildConfig.APPLICATION_CLIENT_SECRET";
+        String accessKey = BuildConfig.APPLICATION_CLIENT_ID; // access key id (from portal or Sub Account)
+        String secretKey = BuildConfig.APPLICATION_CLIENT_SECRET;
 
         StringBuilder buffer = new StringBuilder();
         buffer.append(method);
