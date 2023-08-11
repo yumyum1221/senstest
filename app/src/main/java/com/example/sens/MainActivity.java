@@ -13,6 +13,9 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -49,20 +52,26 @@ public class MainActivity extends AppCompatActivity {
                             new String[]{Manifest.permission.SEND_SMS}, PERMISSION_REQUEST_CODE);
                 } else {
                     // Retrofit을 사용하여 SENS API 호출
-                    sendSms(phoneNumber, message);
+                    try {
+                        sendSms(phoneNumber, message);
+                    } catch (NoSuchAlgorithmException e) {
+                        throw new RuntimeException(e);
+                    } catch (InvalidKeyException e) {
+                        throw new RuntimeException(e);
+                    }
                 }
             }
         });
     }
 
-    private void sendSms(String phoneNumber, String message) {
+    private void sendSms(String phoneNumber, String message) throws NoSuchAlgorithmException, InvalidKeyException {
         String countryCode = "82"; // 국가 코드를 적절한 값으로 설정해주세요.
         String accessKey = "BuildConfig.APPLICATION_CLIENT_ID";
         String signature = SmsApiService.getSignature();
         long timestamp = System.currentTimeMillis();
 
         SmsApiClient.getInstance()
-                .sendSms(timestamp, accessKey, signature, "sms", "COMM", phoneNumber, message, countryCode)
+                .sendSms(timestamp, accessKey, signature, "sms", "COMM", phoneNumber, message, "82")
                 .enqueue(new Callback<SmsResponse>() {
                     @Override
                     public void onResponse(Call<SmsResponse> call, Response<SmsResponse> response) {
@@ -92,7 +101,13 @@ public class MainActivity extends AppCompatActivity {
                 String phoneNumber = phoneEditText.getText().toString().trim();
                 String message = messageEditText.getText().toString().trim();
                 // Retrofit을 사용하여 SENS API 호출
-                sendSms(phoneNumber, message);
+                try {
+                    sendSms(phoneNumber, message);
+                } catch (NoSuchAlgorithmException e) {
+                    throw new RuntimeException(e);
+                } catch (InvalidKeyException e) {
+                    throw new RuntimeException(e);
+                }
             } else {
                 Toast.makeText(this, "SMS 전송 권한이 거부되었습니다.", Toast.LENGTH_SHORT).show();
             }
