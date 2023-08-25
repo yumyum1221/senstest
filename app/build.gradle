@@ -19,6 +19,7 @@ android {
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField "String", "APPLICATION_CLIENT_ID", properties['application_client_id']
         buildConfigField "String", "APPLICATION_CLIENT_SECRET", properties['application_client_secret']
+        buildConfigField "String", "SERVICE_ID", properties['service_id']
     }
 
     buildTypes {

@@ -1,24 +1,24 @@
 package com.example.sens;
 
-import android.Manifest;
-import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
+
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
 
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
+import java.io.BufferedReader;
+import java.io.DataOutputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+
 
 public class MainActivity extends AppCompatActivity {
 
@@ -46,71 +46,81 @@ public class MainActivity extends AppCompatActivity {
                     return;
                 }
 
-                if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.SEND_SMS)
-                        != PackageManager.PERMISSION_GRANTED) {
-                    ActivityCompat.requestPermissions(MainActivity.this,
-                            new String[]{Manifest.permission.SEND_SMS}, PERMISSION_REQUEST_CODE);
-                } else {
-                    // Retrofit을 사용하여 SENS API 호출
-                    try {
-                        sendSms(phoneNumber, message);
-                    } catch (NoSuchAlgorithmException e) {
-                        throw new RuntimeException(e);
-                    } catch (InvalidKeyException e) {
-                        throw new RuntimeException(e);
-                    }
+                try {
+                    sendSMS(phoneNumber, message);
+                } catch (JSONException e) {
+                    e.printStackTrace();
                 }
+
             }
         });
     }
+    private void sendSMS(String phoneNumber, String message) throws JSONException {
+        String hostNameUrl = "https://sens.apigw.ntruss.com";     		// 호스트 URL
+        String requestUrl= "/sms/v2/services/";                   		// 요청 URL
+        String requestUrlType = "/messages";                      		// 요청 URL
+        String accessKey = BuildConfig.APPLICATION_CLIENT_ID;           // 네이버 클라우드 플랫폼 회원에게 발급되는 개인 인증키
+        String secretKey = BuildConfig.APPLICATION_CLIENT_SECRET;       // 2차 인증을 위해 서비스마다 할당되는 service secret key
+        String serviceId = BuildConfig.SERVICE_ID;                      // 프로젝트에 할당된 SMS 서비스 ID
+        String method = "POST";                 //요청 메소드
+        String timestamp = Long.toString(System.currentTimeMillis());
+        requestUrl += serviceId + requestUrlType;
+        String apiUrl = hostNameUrl + requestUrl;
 
-    private void sendSms(String phoneNumber, String message) throws NoSuchAlgorithmException, InvalidKeyException {
-        String countryCode = "82"; // 국가 코드를 적절한 값으로 설정해주세요.
-        String accessKey = "BuildConfig.APPLICATION_CLIENT_ID";
-        String signature = SmsApiService.getSignature();
-        long timestamp = System.currentTimeMillis();
+        JSONObject bodyJson = new JSONObject();
+        JSONObject toJson = new JSONObject();
+        JSONArray toArr = new JSONArray();
 
-        SmsApiClient.getInstance()
-                .sendSms(timestamp, accessKey, signature, "sms", "COMM", phoneNumber, message, "82")
-                .enqueue(new Callback<SmsResponse>() {
-                    @Override
-                    public void onResponse(Call<SmsResponse> call, Response<SmsResponse> response) {
-                        if (response.isSuccessful()) {
-                            // SMS 발송 성공
-                            Toast.makeText(MainActivity.this, "문자가 발송되었습니다.", Toast.LENGTH_SHORT).show();
-                        } else {
-                            int errorCode = response.code(); // 응답 코드 가져오기
-                            // SMS 발송 실패
-                            Toast.makeText(MainActivity.this, "문자 발송에 실패하였습니다."+errorCode, Toast.LENGTH_SHORT).show();
-                        }
-                    }
+        toJson.put("to",phoneNumber); //전화번호
+        toArr.put(toJson);
 
-                    @Override
-                    public void onFailure(Call<SmsResponse> call, Throwable t) {
-                        // 통신 실패
-                        Toast.makeText(MainActivity.this, "통신 오류가 발생하였습니다.", Toast.LENGTH_SHORT).show();
-                    }
-                });
-    }
+        bodyJson.put("type","SMS"); //메시지 유형
+        bodyJson.put("content",message); //메시지 내용
+        bodyJson.put("messages", toArr); //수신자 정보(JSON 배열 구성)
 
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == PERMISSION_REQUEST_CODE) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                String phoneNumber = phoneEditText.getText().toString().trim();
-                String message = messageEditText.getText().toString().trim();
-                // Retrofit을 사용하여 SENS API 호출
-                try {
-                    sendSms(phoneNumber, message);
-                } catch (NoSuchAlgorithmException e) {
-                    throw new RuntimeException(e);
-                } catch (InvalidKeyException e) {
-                    throw new RuntimeException(e);
-                }
+        String body = bodyJson.toString();
+
+        try {
+            URL url = new URL(apiUrl);
+            HttpURLConnection con = (HttpURLConnection) url.openConnection();
+            con.setUseCaches(false);
+            con.setDoOutput(true);
+            con.setDoInput(true);
+            con.setRequestProperty("content-type","application/json");
+            con.setRequestProperty("x-ncp-apigw-timestamp", timestamp);
+            con.setRequestProperty("x-ncp-iam-access-key", accessKey);
+            con.setRequestProperty("x-ncp-apigw-signature-v2", SmsApiService.makeSignature(requestUrl, timestamp, method, accessKey, secretKey));
+            con.setRequestMethod(method);
+            con.setDoOutput(true);
+            DataOutputStream wr = new DataOutputStream(con.getOutputStream());
+
+            wr.write(body.getBytes());
+            wr.flush();
+            wr.close();
+
+            int responseCode = con.getResponseCode();
+            BufferedReader br;
+            System.out.println("responseCode"+" "+responseCode);
+            if(responseCode == 202) { //정상
+                br = new BufferedReader(new InputStreamReader(con.getInputStream()));
             } else {
-                Toast.makeText(this, "SMS 전송 권한이 거부되었습니다.", Toast.LENGTH_SHORT).show();
+                br = new BufferedReader(new InputStreamReader(con.getErrorStream()));
             }
+
+            String inputLine;
+            StringBuffer response = new StringBuffer();
+            while((inputLine = br.readLine()) != null){
+                response.append(inputLine);
+            }
+            br.close();
+
+            System.out.println(response.toString());
+
+        } catch (Exception e) {
+            System.out.println(e);
         }
+
+
     }
+
 }

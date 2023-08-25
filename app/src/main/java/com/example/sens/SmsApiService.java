@@ -1,12 +1,8 @@
 package com.example.sens;
-
-import android.os.Build;
-
-import java.nio.charset.StandardCharsets;
-
+import java.io.UnsupportedEncodingException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
-import android.util.Base64;
+import java.util.Base64;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
@@ -18,9 +14,6 @@ import retrofit2.http.Header;
 import retrofit2.http.POST;
 
 public interface SmsApiService {
-    String access_key = BuildConfig.APPLICATION_CLIENT_ID;
-    long timestamp = System.currentTimeMillis();
-    String signature = getSignature();
 
     @FormUrlEncoded
     @POST("/sms/v2/services/ncp:sms:kr:305347621568:tojung/messages")
@@ -35,40 +28,41 @@ public interface SmsApiService {
             @Field("countryCode") String countryCode //국가전화번호
     );
 
-    public static String getSignature() {
-        String space = " "; // one space //
-        String newLine = "\n"; // new line
-        String method = "POST"; // method
-        String url = "/sms/v2/services/ncp:sms:kr:305347621568:tojung/messages"; // url (include query string)
-        String timestamp = String.valueOf(System.currentTimeMillis()); // current timestamp (epoch)
-        String accessKey = BuildConfig.APPLICATION_CLIENT_ID; // access key id (from portal or Sub Account)
-        String secretKey = BuildConfig.APPLICATION_CLIENT_SECRET;
+    public static String makeSignature(String url,
+                                       String timestamp,
+                                       String method,
+                                       String accessKey,
+                                       String secretKey)
+            throws NoSuchAlgorithmException, InvalidKeyException {
+        String space = " ";                    // one space
+        String newLine = "\n";                 // new line
+
 
         String message = new StringBuilder()
-            .append(method)
-            .append(space)
-            .append(url)
-            .append(newLine)
-            .append(timestamp)
-            .append(newLine)
-            .append(accessKey)
-            .toString();
+                .append(method)
+                .append(space)
+                .append(url)
+                .append(newLine)
+                .append(timestamp)
+                .append(newLine)
+                .append(accessKey)
+                .toString();
+
+        SecretKeySpec signingKey;
+        String encodeBase64String;
         try {
-            SecretKeySpec signingKey = new SecretKeySpec(secretKey.getBytes(StandardCharsets.UTF_8), "HmacSHA256");
+
+            signingKey = new SecretKeySpec(secretKey.getBytes("UTF-8"), "HmacSHA256");
             Mac mac = Mac.getInstance("HmacSHA256");
             mac.init(signingKey);
-
-            byte[] rawHmac = mac.doFinal(message.getBytes(StandardCharsets.UTF_8));
-            byte[] base64Bytes = Base64.encode(rawHmac, Base64.DEFAULT);
-            String encodeBase64String = new String(base64Bytes, StandardCharsets.UTF_8);
-
-
-            return encodeBase64String;
-        } catch (NoSuchAlgorithmException | InvalidKeyException e) {
-            e.printStackTrace();
+            byte[] rawHmac = mac.doFinal(message.getBytes("UTF-8"));
+            encodeBase64String = Base64.getEncoder().encodeToString(rawHmac);
+        } catch (UnsupportedEncodingException e) {
+            // TODO Auto-generated catch block
+            encodeBase64String = e.toString();
         }
-        return null;
 
-
+        return encodeBase64String;
     }
+
 }

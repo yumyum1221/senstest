@@ -5,7 +5,7 @@ import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 public class SmsApiClient {
-    private static final String BASE_URL = "https://sens.apigw.ntruss.com";
+    private static final String BASE_URL = "https://sens.apigw.ntruss.com/sms/v2/services/ncp:sms:kr:305347621568:tojung/";
     private static SmsApiService smsApiService;
 
     private SmsApiClient() {
