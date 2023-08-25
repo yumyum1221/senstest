@@ -1,6 +1,7 @@
 package com.example.sens;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -22,7 +23,6 @@ import java.net.URL;
 
 public class MainActivity extends AppCompatActivity {
 
-    private static final int PERMISSION_REQUEST_CODE = 1;
     private EditText phoneEditText, messageEditText;
     private Button sendButton;
 
@@ -38,19 +38,24 @@ public class MainActivity extends AppCompatActivity {
         sendButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String phoneNumber = phoneEditText.getText().toString().trim();
-                String message = messageEditText.getText().toString().trim();
+                String phoneNumber = phoneEditText.getText().toString();
+                String message = messageEditText.getText().toString();
 
                 if (phoneNumber.isEmpty() || message.isEmpty()) {
                     Toast.makeText(MainActivity.this, "전화번호와 문자 내용을 입력해주세요.", Toast.LENGTH_SHORT).show();
                     return;
                 }
-
-                try {
-                    sendSMS(phoneNumber, message);
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            sendSMS(phoneNumber, message);
+                            Log.d("SMS","완료");
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }).start();
 
             }
         });
@@ -67,18 +72,25 @@ public class MainActivity extends AppCompatActivity {
         requestUrl += serviceId + requestUrlType;
         String apiUrl = hostNameUrl + requestUrl;
 
+        //Json을 활용한 body data 생성
+
         JSONObject bodyJson = new JSONObject();
         JSONObject toJson = new JSONObject();
         JSONArray toArr = new JSONArray();
 
-        toJson.put("to",phoneNumber); //전화번호
+        toJson.put("content",message); //메시지내용
+        toJson.put("to",phoneNumber); //수신 전화번호
         toArr.put(toJson);
 
         bodyJson.put("type","SMS"); //메시지 유형
+        bodyJson.put("contentType","COMM"); //메시지 내용 타입
         bodyJson.put("content",message); //메시지 내용
+        bodyJson.put("from","01022392701");
         bodyJson.put("messages", toArr); //수신자 정보(JSON 배열 구성)
 
         String body = bodyJson.toString();
+
+        System.out.println(body);
 
         try {
             URL url = new URL(apiUrl);
@@ -100,11 +112,15 @@ public class MainActivity extends AppCompatActivity {
 
             int responseCode = con.getResponseCode();
             BufferedReader br;
+            Log.d("MainActivity", "responseCode: " + responseCode);
             System.out.println("responseCode"+" "+responseCode);
+
             if(responseCode == 202) { //정상
                 br = new BufferedReader(new InputStreamReader(con.getInputStream()));
-            } else {
+                Log.d("responsecode","정상");
+            } else {        //에러 발생
                 br = new BufferedReader(new InputStreamReader(con.getErrorStream()));
+                Log.d("responsecode","실패");
             }
 
             String inputLine;
@@ -118,6 +134,7 @@ public class MainActivity extends AppCompatActivity {
 
         } catch (Exception e) {
             System.out.println(e);
+            Log.e("MainActivity", "Error during API call", e);
         }
 
 

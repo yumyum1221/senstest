@@ -15,18 +15,6 @@ import retrofit2.http.POST;
 
 public interface SmsApiService {
 
-    @FormUrlEncoded
-    @POST("/sms/v2/services/ncp:sms:kr:305347621568:tojung/messages")
-    Call<SmsResponse> sendSms(
-            @Header("x-ncp-apigw-timestamp") long timestamp,
-            @Header("x-ncp-iam-access-key") String access_key,
-            @Header("x-ncp-apigw-signature-v2") String signature,
-            @Field("type") String type, //sms
-            @Field("contentType") String contentType, //ad(광고)인지 comm(일반)인지
-            @Field("to") String to, //수신번호
-            @Field("content") String content, //메시지 내용
-            @Field("countryCode") String countryCode //국가전화번호
-    );
 
     public static String makeSignature(String url,
                                        String timestamp,
